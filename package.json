@@ -1,0 +1,22 @@
+{
+  "name": "teleporter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "pathfinder.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jliu2179/teleporter.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jliu2179/teleporter/issues"
+  },
+  "homepage": "https://github.com/jliu2179/teleporter#readme",
+  "dependencies": {
+    "level": "^4.0.0"
+  }
+}
