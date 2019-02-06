@@ -14,6 +14,20 @@ const rl = readline.createInterface({
 rl.close();
 
 
+async function checkToggled() {
+  await db.get('toggled', function (err, value) {
+    if(err){
+      if(err.notFound) {
+        console.log("toggled key not found");
+        return;
+      }
+    }
+  });
+  await db.put('toggled', true);
+}
+
+
+
 async function listDBContents() {
   await db.createReadStream()
     .on('data', function (data) {
@@ -28,11 +42,18 @@ async function listDBContents() {
 function processArgs() {
   switch(args[0]) {
     case '-l': case '--list':
-      listDBContents();
-      break;
+      return listDBContents();
+
     default:
       console.log("default reached");
   }
 }
 
-processArgs();
+function run() {
+  checkToggled();
+  processArgs();
+
+}
+
+run();
+
