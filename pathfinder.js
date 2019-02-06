@@ -26,6 +26,19 @@ async function checkToggled() {
   await db.put('toggled', true);
 }
 
+async function toggleConfirms() {
+  try {
+    const toggled = (await db.get("toggled") === 'true');
+    if (toggled) {
+      await db.put("toggled", false);
+    } else {
+      await db.put("toggled", true);
+    }
+  } catch(err) {
+    console.error(err);
+  }
+}
+
 
 
 async function listDBContents() {
@@ -41,6 +54,9 @@ async function listDBContents() {
 
 function processArgs() {
   switch(args[0]) {
+    case '-tc': case '--toggle-confirm':
+      return toggleConfirms();
+
     case '-l': case '--list':
       return listDBContents();
 
@@ -52,7 +68,6 @@ function processArgs() {
 function run() {
   checkToggled();
   processArgs();
-
 }
 
 run();
