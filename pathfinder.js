@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-
 const fs = require('fs');
 const { promisify } = require('util');
 const readline = require('readline');
 const db = require('./db');
 const args = process.argv.slice(2);
+
+const debug = true;
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -12,7 +13,6 @@ const rl = readline.createInterface({
 });
 
 rl.close();
-
 
 async function checkToggled() {
   await db.get('toggled', function (err, value) {
@@ -37,9 +37,11 @@ async function toggleConfirms() {
   } catch(err) {
     console.error(err);
   }
+
+  if (debug) {
+    console.log("Toggle status:", await db.get("toggled"));
+  }
 }
-
-
 
 async function listDBContents() {
   await db.createReadStream()
@@ -50,7 +52,6 @@ async function listDBContents() {
       console.log('Oh my!', err)
     })
 }
-
 
 function processArgs() {
   switch(args[0]) {
