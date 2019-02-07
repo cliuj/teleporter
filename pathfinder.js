@@ -68,6 +68,10 @@ async function listDBContents() {
     })
 }
 
+function displayHelp() {
+  
+}
+
 function processArgs() {
   switch(args[0]) {
     case '-tc': case '--toggle-confirm':
@@ -81,6 +85,9 @@ function processArgs() {
 
     case '-l': case '--list':
       return listDBContents();
+    
+    case '-h': case '--help':
+      return displayHelp();
 
     default:
       console.log("default reached");
