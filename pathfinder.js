@@ -43,6 +43,21 @@ async function toggleConfirms() {
   }
 }
 
+async function deleteDBLocation(key) {
+  if (key === "toggled") {
+    return console.log("'" + key + "'", "is a keyword, so it cannot be deleted!");
+  }
+
+  await db.del(key, function(err) {
+    if (err) {
+      if (err.notFound) {
+        console.log("Key not found!");
+      }
+    }
+  });
+}
+
+
 async function listDBContents() {
   await db.createReadStream()
     .on('data', function (data) {
@@ -57,6 +72,12 @@ function processArgs() {
   switch(args[0]) {
     case '-tc': case '--toggle-confirm':
       return toggleConfirms();
+
+    case '-d': case '--delete':
+      if (!args[1]) {
+        return console.log("No args passed");
+      }
+      return deleteDBLocation(args[1]);
 
     case '-l': case '--list':
       return listDBContents();
