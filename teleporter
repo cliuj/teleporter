@@ -3,10 +3,10 @@ function tp() {
     result=$( node ~/.scripts/pathfinder.js "$@")
     if [[ $result == *"Locations stored in DB:"* ]]; then
         echo $result
+    elif [[ $result == *"Error:"* ]]; then
+        echo $result
     elif [ -d "$result" ]; then
         cd $result
-    elif [ ! -z "$result" ]; then
-        echo $result
     else
     fi
 }

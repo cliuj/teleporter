@@ -1,30 +1,36 @@
 #!/usr/bin/env node
-
 'use strict';
 
 const fs = require('fs');
 const db = require('./db');
 const args = process.argv.slice(2);
 
+function errorMsg(error) {
+  console.log("Error:", error);
+}
+
 async function addDBLocation(key, value) {
-  
-  let validDirPromise = new Promise((resolve) => {
-    fs.access(value, function(err) {
-      if(err && err.code === 'ENOENT') {
-        resolve(false);
-      } else {
-        resolve(true);
-      }
-    })
+
+  let path = value;
+  const validDirPromise = new Promise((resolve) => {
+    if (path === '..') {
+      return errorMsg(".. not allowed");
+    }
+
+    if (value === '.') {
+      path = process.cwd();
+    } else if (!value.includes("~/")) {
+      path = [process.cwd(), '/', value].join("");
+    }
+    resolve(path);
   });
 
-
   validDirPromise.then((valid) => {
-    if (!valid) {
-      return console.log("Invalid Directory");
-    }
-    let path;
-    (value === '.') ? path = process.cwd() : path = value;
+    fs.access(value, function(err) {
+      if(err && err.code === 'ENOENT') {
+        return errorMsg("Invalid Directory");
+      }
+    })
     
     db.get(key, function(err) {
       if (err) {
@@ -33,6 +39,7 @@ async function addDBLocation(key, value) {
         }
       }
     })
+    return db.put(key, path);
   });
 }
 
@@ -42,14 +49,14 @@ async function deleteDBLocation(key) {
   } catch (err) {
     return console.log(err);
   }
-  return console.log("Key:", key, "deleted");
+  return;
 }
 
 async function getLocation(key) {
   try {
     const path = await db.get(key);
   } catch (err) {
-    return console.log("Key not found");
+    return errorMsg("Key not found");
   }
   return console.log(await db.get(key));
 }
@@ -59,10 +66,10 @@ async function listDBContents() {
   console.log("-----------------------");
   await db.createReadStream()
     .on('data', function(data) {
-      console.log(data.key, '-->', data.value)
+      console.log(data.key, '==>', data.value)
     })
     .on('error', function(err) {
-      return console.log("Error occured when listing the contents of DB");
+      return errorMsg("Failed to list the contents of DB");
     })
   return;
 }
@@ -71,11 +78,14 @@ async function listDBContents() {
 function processArgs() {
   switch(args[0]) {
     case '-a': case '--add':
+      if (!args[2]) {
+        return errorMsg("Missing target directory");
+      }
       return addDBLocation(args[1], args[2]);
 
     case '-d': case '--delete':
       if(!args[1]) {
-        return console.log("No args passed");
+        return errorMsg("No args passed");
       }
       return deleteDBLocation(args[1]);
 
