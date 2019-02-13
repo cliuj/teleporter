@@ -5,7 +5,8 @@ function tp() {
         echo $result
     elif [ -d "$result" ]; then
         cd $result
-    else
+    elif [ ! -z "$result" ]; then
         echo $result
+    else
     fi
 }

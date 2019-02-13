@@ -1,38 +1,48 @@
 #!/usr/bin/env node
 
+'use strict';
+
 const fs = require('fs');
 const db = require('./db');
 const args = process.argv.slice(2);
 
 async function addDBLocation(key, value) {
-  // check if dir exists
-  fs.access(value, fs.constants.F_OK, (err) => {
-    if (err && err.code === 'ENOENT') {
-      return console.log("Directory does not exist!");
-    }
-  });
-
-
-  let path;
-  (value === '.') ? path = process.cwd() : path = value;
   
-  await db.get(key, function(err) {
-    if (err) {
-      if (err.notFound) {
-        return db.put(key, path);
+  let validDirPromise = new Promise((resolve) => {
+    fs.access(value, function(err) {
+      if(err && err.code === 'ENOENT') {
+        resolve(false);
+      } else {
+        resolve(true);
       }
-    }
+    })
   });
-  return await db.put(key, path);
+
+
+  validDirPromise.then((valid) => {
+    if (!valid) {
+      return console.log("Invalid Directory");
+    }
+    let path;
+    (value === '.') ? path = process.cwd() : path = value;
+    
+    db.get(key, function(err) {
+      if (err) {
+        if (err.notFound) {
+          return db.put(key, path);
+        }
+      }
+    })
+  });
 }
 
 async function deleteDBLocation(key) {
   try {
     await db.del(key);
   } catch (err) {
-    console.log("test");
     return console.log(err);
   }
+  return console.log("Key:", key, "deleted");
 }
 
 async function getLocation(key) {
@@ -46,12 +56,13 @@ async function getLocation(key) {
 
 async function listDBContents() {
   console.log("Locations stored in DB:");
+  console.log("-----------------------");
   await db.createReadStream()
     .on('data', function(data) {
       console.log(data.key, '-->', data.value)
     })
     .on('error', function(err) {
-      console.log("Error occured when listing the contents of DB");
+      return console.log("Error occured when listing the contents of DB");
     })
   return;
 }
@@ -78,7 +89,7 @@ function processArgs() {
       return getLocation(args[1]);
 
     default:
-      console.log("default reached!");
+      return;
   }
 }
 
