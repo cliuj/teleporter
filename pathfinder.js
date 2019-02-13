@@ -4,9 +4,18 @@ const fs = require('fs');
 const db = require('./db');
 const args = process.argv.slice(2);
 
-async function addDBLocation(key, path) {
+async function addDBLocation(key, value) {
   // check if dir exists
+  fs.access(value, fs.constants.F_OK, (err) => {
+    if (err && err.code === 'ENOENT') {
+      return console.log("Directory does not exist!");
+    }
+  });
 
+
+  let path;
+  (value === '.') ? path = process.cwd() : path = value;
+  
   await db.get(key, function(err) {
     if (err) {
       if (err.notFound) {
@@ -14,17 +23,16 @@ async function addDBLocation(key, path) {
       }
     }
   });
-  return db.put(key, path);
+  return await db.put(key, path);
 }
 
 async function deleteDBLocation(key) {
-  await db.del(key, function(err) {
-    if (err) {
-      if (err.notFound) {
-        return console.log("Key not found!");
-      }
-    }
-  });
+  try {
+    await db.del(key);
+  } catch (err) {
+    console.log("test");
+    return console.log(err);
+  }
 }
 
 async function getLocation(key) {
@@ -50,7 +58,6 @@ async function listDBContents() {
 
 
 function processArgs() {
-
   switch(args[0]) {
     case '-a': case '--add':
       return addDBLocation(args[1], args[2]);

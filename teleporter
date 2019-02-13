@@ -1,15 +1,10 @@
 #!/usr/bin/env bash
-
-#node pathfinder.js "$@"
-
 function tp() {
-    result=$(node pathfinder.js "$@")
-
+    result=$( node ~/.scripts/pathfinder.js "$@")
     if [[ $result == *"Locations stored in DB:"* ]]; then
         echo $result
-    elif [[ $result == *"/home/"* ]]; then
-        echo "result contains /home/"
-        #echo $result
+    elif [ -d "$result" ]; then
+        cd $result
     else
         echo $result
     fi
