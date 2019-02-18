@@ -2,6 +2,7 @@
 'use strict';
 
 const fs = require('fs');
+const os = require('os');
 const db = require('./db');
 const args = process.argv.slice(2);
 
@@ -9,45 +10,45 @@ function errorMsg(error) {
   console.log("Error:", error);
 }
 
-async function addDBLocation(key, value) {
-
-  let path = value;
-  const validDirPromise = new Promise((resolve) => {
+async function addDBLocation(key, path) {
+  
+  let validDirPromise = new Promise((resolve) => {
+    
     if (path === '..') {
       return errorMsg(".. not allowed");
     }
 
-    if (value === '.') {
+    if (path === '.') {
       path = process.cwd();
-    } else if (!value.includes("~/")) {
-      path = [process.cwd(), '/', value].join("");
+
+    } else if (!path.includes(os.homedir())) {
+      path = [process.cwd(), '/', path].join("");
     }
+
     resolve(path);
   });
 
-  validDirPromise.then((valid) => {
-    fs.access(value, function(err) {
-      if(err && err.code === 'ENOENT') {
-        return errorMsg("Invalid Directory");
+  validDirPromise
+    .then(() => {
+      if(fs.existsSync(path)) {
+        return true;
+      } else {
+        return errorMsg("Path does not exist");
       }
     })
-    
-    db.get(key, function(err) {
-      if (err) {
-        if (err.notFound) {
-          return db.put(key, path);
-        }
+
+    .then(function(valid) {
+      if (valid) {
+        db.put(key, path);
       }
-    })
-    return db.put(key, path);
-  });
+    });
 }
 
 async function deleteDBLocation(key) {
   try {
     await db.del(key);
   } catch (err) {
-    return console.log(err);
+    return errorMsg(err);
   }
   return;
 }
@@ -99,7 +100,7 @@ function processArgs() {
       return getLocation(args[1]);
 
     default:
-      return;
+      return errorMsg("No valid args passed");
   }
 }
 
