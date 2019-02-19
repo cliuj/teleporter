@@ -75,6 +75,38 @@ async function listDBContents() {
   return;
 }
 
+function displayHelp() {
+  const help = [
+    "Teleporter - A Node.js script for quick directory 'cd's"
+    ,"\n"
+    ,"             allowing users to 'teleport' to mapped directories",
+    ,"\n"
+    ,"\n"
+    ,"Commands:    ", "  tp ", " <option>"
+    ,"\n"
+    ,"\n"
+    ,"Options: "
+    ,"\n"
+    ,"\n"
+    ,"-a, --add    ", "  tp <option> <key> <dir>  ", "  maps the passed key to the passed directory"
+    ,"\n"
+    ,"\n"
+    ,"-d, --delete ","  tp <option> <key>        ", "  deletes the key and what it maps to from DB"
+    ,"\n"
+    ,"\n"
+    ,"to           ","  tp <option> <key>        ", "  teleports(cd) to the dir where key is mapped"
+    ,"\n"
+    ,"\n"
+    ,"-l, --list   ","  tp <option>              ", "  list the content(locations) stored in the DB"
+    ,"\n"
+    ,"\n"
+    ,"-h, --help   ","  tp <option>              ", "  displays this"
+
+  ].join("");
+  
+  return console.log(help);
+}
+
 
 function processArgs() {
   switch(args[0]) {
