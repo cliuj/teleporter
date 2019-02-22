@@ -10,7 +10,7 @@ Given the nature of how scripts/programs are typically executed in a child proce
 **Note** The reference to `teleporter` below is the actual file called **teleporter**
 
 Here's a list of things that should be taken into consideration:
-* Make **symlinks** of **teleporter** and **pathfinder.js** and place them inside `~/.scripts/` or where ever , but make sure that call to **pathfinder.js** is in the same directory specified in **teleporter**
+* Make **symlinks** of **teleporter** and **pathfinder.js** and place them inside `~/scripts/` or where ever , but make sure that call to **pathfinder.js** is in the same directory specified in **teleporter**
 * Source **teleporter** symlink or actual (**MUST DO** or else `cd` of `pwd` does not stay after execution completion)
 
 
