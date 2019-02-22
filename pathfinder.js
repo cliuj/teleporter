@@ -11,9 +11,9 @@ function errorMsg(error) {
 }
 
 async function addDBLocation(key, path) {
-  
+
   let validDirPromise = new Promise((resolve) => {
-    
+
     if (path === '..') {
       return errorMsg(".. not allowed");
     }
@@ -82,13 +82,13 @@ function displayHelp() {
     ,"             allowing users to 'teleport' to mapped directories",
     ,"\n"
     ,"\n"
-    ,"Commands:    ", "  tp ", " <option>"
+    ,"Commands:    ","  tp ", " <option>"
     ,"\n"
     ,"\n"
     ,"Options: "
     ,"\n"
     ,"\n"
-    ,"-a, --add    ", "  tp <option> <key> <dir>  ", "  maps the passed key to the passed directory"
+    ,"-a, --add    ","  tp <option> <key> <dir>  ", "  maps the passed key to the passed directory"
     ,"\n"
     ,"\n"
     ,"-d, --delete ","  tp <option> <key>        ", "  deletes the key and what it maps to from DB"
@@ -103,7 +103,7 @@ function displayHelp() {
     ,"-h, --help   ","  tp <option>              ", "  displays this"
 
   ].join("");
-  
+
   return console.log(help);
 }
 
@@ -127,7 +127,7 @@ function processArgs() {
 
     case '-h': case '--help':
       return displayHelp();
-    
+
     case 'to':
       return getLocation(args[1]);
 
