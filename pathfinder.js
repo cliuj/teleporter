@@ -53,6 +53,19 @@ async function deleteDBLocation(key) {
   return;
 }
 
+async function renameDBKey(args) {
+  const oldKey = args[1];
+  const newKey = args[2];
+  try {
+    const path = await db.get(oldKey);
+    await db.put(newKey, path);
+    await db.del(oldKey);
+    return await db.close();
+  } catch (err) {
+    return errorMsg("Unable to rename");
+  }
+}
+
 async function getLocation(key) {
   try {
     const path = await db.get(key);
@@ -88,19 +101,22 @@ function displayHelp() {
     ,"Options: "
     ,"\n"
     ,"\n"
-    ,"-a, --add    ","  tp <option> <key> <dir>  ", "  maps the passed key to the passed directory"
+    ,"-a, --add    ","  tp <option> <key> <dir>    ", "  maps the passed key to the passed directory"
     ,"\n"
     ,"\n"
-    ,"-d, --delete ","  tp <option> <key>        ", "  deletes the key and what it maps to from DB"
+    ,"-d, --delete ","  tp <option> <key>          ", "  deletes the key and what it maps to from DB"
     ,"\n"
     ,"\n"
-    ,"to           ","  tp <option> <key>        ", "  teleports(cd) to the dir where key is mapped"
+    ,"-r, --rename ","  tp <option> <okey> <nkey>  ", "  rename exsisting key to new passed name"
     ,"\n"
     ,"\n"
-    ,"-l, --list   ","  tp <option>              ", "  list the content(locations) stored in the DB"
+    ,"to           ","  tp <option> <key>          ", "  teleports(cd) to the dir where key is mapped"
     ,"\n"
     ,"\n"
-    ,"-h, --help   ","  tp <option>              ", "  displays this"
+    ,"-l, --list   ","  tp <option>                ", "  list the content(locations) stored in the DB"
+    ,"\n"
+    ,"\n"
+    ,"-h, --help   ","  tp <option>                ", "  displays this"
 
   ].join("");
 
@@ -124,6 +140,12 @@ function processArgs() {
 
     case '-l': case '--list':
       return listDBContents();
+
+    case '-r': case '--rename':
+      if (!args[2]) {
+        return errorMsg("Invalid arguments");
+      }
+      return renameDBKey(args);
 
     case '-h': case '--help':
       return displayHelp();
