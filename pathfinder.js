@@ -35,12 +35,8 @@ async function addDBLocation(key, path) {
 
     .then(function(valid) {
       if (valid) {
-        try {
           db.put(key, path);
           return db.close();
-        } catch (err) {
-          return errorMsg(err);
-        }
       } else {
         return errorMsg("Path does not exist");
       }
