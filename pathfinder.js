@@ -12,10 +12,10 @@ function errorMsg(error) {
 
 async function addDBLocation(key, path) {
 
-  let validDirPromise = new Promise((resolve) => {
+  let validDirPromise = new Promise((resolve, reject) => {
 
     if (path === '..') {
-      return errorMsg(".. not allowed");
+      return reject(new Error());
     }
 
     if (path === '.') {
@@ -30,32 +30,38 @@ async function addDBLocation(key, path) {
 
   validDirPromise
     .then(() => {
-      if(fs.existsSync(path) && fs.statSync(path).isDirectory()) {
-        return true;
+      return fs.existsSync(path) && fs.statSync(path).isDirectory();
+    })
+
+    .then(function(valid) {
+      if (valid) {
+        try {
+          db.put(key, path);
+          return db.close();
+        } catch (err) {
+          return errorMsg(err);
+        }
       } else {
         return errorMsg("Path does not exist");
       }
     })
 
-    .then(function(valid) {
-      if (valid) {
-        db.put(key, path);
-      }
+    .catch(function(rejected) {
+      return errorMsg(".. not allowed");
     });
 }
 
 async function deleteDBLocation(key) {
   try {
     await db.del(key);
+    return await db.close();
   } catch (err) {
     return errorMsg(err);
   }
   return;
 }
 
-async function renameDBKey(args) {
-  const oldKey = args[1];
-  const newKey = args[2];
+async function renameDBKey(oldKey, newKey) {
   try {
     const path = await db.get(oldKey);
     await db.put(newKey, path);
@@ -84,7 +90,7 @@ async function listDBContents() {
     })
     .on('error', function(err) {
       return errorMsg("Failed to list the contents of DB");
-    })
+    });
   return;
 }
 
@@ -145,7 +151,7 @@ function processArgs() {
       if (!args[2]) {
         return errorMsg("Invalid arguments");
       }
-      return renameDBKey(args);
+      return renameDBKey(args[1], args[2]);
 
     case '-h': case '--help':
       return displayHelp();
@@ -154,7 +160,7 @@ function processArgs() {
       return getLocation(args[1]);
 
     default:
-      return errorMsg("No valid args passed");
+      return errorMsg("No valid args passed. Use 'tp -h' for help");
   }
 }
 
