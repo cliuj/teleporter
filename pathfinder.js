@@ -5,6 +5,7 @@ const fs = require('fs');
 const os = require('os');
 const db = require('./db');
 const args = process.argv.slice(2);
+const { isValidDirPath } = require('./fs_helpers');
 
 function errorMsg(error) {
   console.error("Error:", error);
@@ -12,39 +13,32 @@ function errorMsg(error) {
 
 async function addDBLocation(key, path) {
 
-  let validDirPromise = new Promise((resolve, reject) => {
-
-    if (path === '..') {
-      return reject(new Error());
-    }
-
-    if (path === '.') {
-      path = process.cwd();
-
-    } else if (!path.includes(os.homedir())) {
-      path = [process.cwd(), '/', path].join("");
-    }
-
-    resolve(path);
-  });
-
-  validDirPromise
-    .then(() => {
-      return fs.existsSync(path) && fs.statSync(path).isDirectory();
-    })
-
-    .then(function(valid) {
-      if (valid) {
-          db.put(key, path);
-          return db.close();
-      } else {
-        return errorMsg("Path does not exist");
-      }
-    })
-
-    .catch(function(rejected) {
-      return errorMsg(".. not allowed");
+  const processPath = () => {
+    return new Promise((resolve, reject) => {
+       if (path.includes('..')) {
+         return reject(".. not allowed");
+       }
+       if (path === '.') {
+         path = process.cwd();
+       } else if (!path.includes(os.homedir())) {
+         path = [process.cwd(), '/', path].join("");
+       }
+       resolve(path);
     });
+  };
+
+  try {
+    await processPath();
+    const valid = await isValidDirPath(path);
+    if (!valid) {
+      return errorMsg("not a valid directory path");
+    }
+    await db.put(key, path);
+  } catch (err) {
+    return errorMsg(err);
+  } finally {
+    await db.close();
+  }
 }
 
 async function deleteDBLocation(key) {
