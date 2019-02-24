@@ -19,21 +19,18 @@ Here's a list of things that should be taken into consideration:
 ```
 Commands:      tp  <option>
 
-
 Options: 
 
+-a, --add      tp <option> <key> <dir>      maps the passed key to the passed directory
 
--a, --add      tp <option> <key> <dir>    maps the passed key to the passed directory
+-d, --delete   tp <option> <key>            deletes the key and what it maps to from DB
 
+-r, --rename   tp <option> <okey> <nkey>    rename exsisting key to new passed name
 
--d, --delete   tp <option> <key>          deletes the key and what it maps to from DB
+to             tp <option> <key>            teleports(cd) to the dir where key is mapped
 
+-l, --list     tp <option>                  list the content(locations) stored in the DB
 
-to             tp <option> <key>          teleports(cd) to the dir where key is mapped
+-h, --help     tp <option>                  displays this 
 
-
--l, --list     tp <option>                list the content(locations) stored in the DB
-
-
--h, --help     tp <option>                displays this
 ```
