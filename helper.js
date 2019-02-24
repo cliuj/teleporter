@@ -4,7 +4,7 @@ const fs = require('fs');
 
 const isValidDirPath = (path) => {
   return new Promise((resolve, reject) => {
-    fs.lstat(path, (err, data) => {
+    fs.stat(path, (err, data) => {
       if (err) {
         return reject("Path does not exist");
       }
