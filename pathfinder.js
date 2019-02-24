@@ -5,7 +5,7 @@ const fs = require('fs');
 const os = require('os');
 const db = require('./db');
 const args = process.argv.slice(2);
-const { isValidDirPath } = require('./fs_helpers');
+const { isValidDirPath } = require('./helper');
 
 function errorMsg(error) {
   console.error("Error:", error);
