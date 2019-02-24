@@ -7,7 +7,7 @@ const db = require('./db');
 const args = process.argv.slice(2);
 
 function errorMsg(error) {
-  console.log("Error:", error);
+  console.error("Error:", error);
 }
 
 async function addDBLocation(key, path) {
@@ -30,7 +30,7 @@ async function addDBLocation(key, path) {
 
   validDirPromise
     .then(() => {
-      if(fs.existsSync(path)) {
+      if(fs.existsSync(path) && fs.statSync(path).isDirectory()) {
         return true;
       } else {
         return errorMsg("Path does not exist");
