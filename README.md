@@ -4,6 +4,8 @@ A **'cd'** script written in Node.js and bash. Users may map any key to their di
 
 Hopefully this reduces the number times one must press tab and type `cd` to enter directories.
 
+![tp-sample](https://user-images.githubusercontent.com/22797257/53432634-e2051a00-39c0-11e9-817d-b8b479f22755.gif)
+
 ## Setup
 
 Given the nature of how scripts/programs are typically executed in a child process, `cd`s in scripts/programs do not exactly last after completion. 
