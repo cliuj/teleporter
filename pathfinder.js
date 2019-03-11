@@ -12,39 +12,37 @@ function errorMsg(error) {
 
 async function addDBLocation(key, path) {
 
-  let validDirPromise = new Promise((resolve, reject) => {
+  if (path.includes('..')) {
+    return errorMsg(".. not allowed");
+  }
+  if (path === '.') {
+    path = process.cwd();
+  } else if (!path.includes(os.homedir())) {
+    path = [process.cwd(), '/', path].join("");
+  }
 
-    if (path === '..') {
-      return reject(new Error());
-    }
-
-    if (path === '.') {
-      path = process.cwd();
-
-    } else if (!path.includes(os.homedir())) {
-      path = [process.cwd(), '/', path].join("");
-    }
-
-    resolve(path);
-  });
-
-  validDirPromise
-    .then(() => {
-      return fs.existsSync(path) && fs.statSync(path).isDirectory();
-    })
-
-    .then(function(valid) {
-      if (valid) {
-          db.put(key, path);
-          return db.close();
-      } else {
-        return errorMsg("Path does not exist");
-      }
-    })
-
-    .catch(function(rejected) {
-      return errorMsg(".. not allowed");
+  const isValidDirPath = (path) => {
+    return new Promise((resolve, reject) => {
+      fs.stat(path, (err, data) => {
+        if (err) {
+          return reject("Path does not exist");
+        }
+        return resolve(data.isDirectory());
+      });
     });
+  };
+
+  try {
+    const valid = await isValidDirPath(path);
+    if (!valid) {
+      return errorMsg("not a valid directory path");
+    }
+    await db.put(key, path);
+  } catch (err) {
+    return errorMsg(err);
+  } finally {
+    await db.close();
+  }
 }
 
 async function deleteDBLocation(key) {
