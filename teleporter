@@ -1,13 +1,168 @@
-#!/usr/bin/env bash
-function tp() {
-    result=$( node ~/scripts/pathfinder.js "$@")
-    if [[ $result == *"Locations stored in DB:"* ]]; then
-        printf "$result \n" 
-    elif [[ $result == *"Error:"* ]]; then
-        printf "$result \n"
-    elif [ -d "$result" ]; then
-        cd $result
-    elif [[ $result == *"Teleporter - A Node.js script for quick directory 'cd's"* ]]; then
-        printf "$result \n"
+#!/bin/sh
+
+#saved_locations_dir="~/.config/teleporter"
+saved_locations_dir="./"
+saved_locations_file="saved_locations"
+saved_locations_path="${saved_locations_dir}/${saved_locations_file}"
+
+print_help() {
+    cat <<-EOF
+Teleporter - A shell script to quickly enter saved directories
+
+Commands:       tp <key>/<option>
+
+Options:
+-a, --add       tp <option> <key> <dir>     maps the passed key to the passed directory
+-d, --delete    tp <option> <key>           deletes saved key and location
+-r, --rename    tp <option> <okey> <nkey>   rename existing key to new key name
+-l, --list      tp <option>                 list the saved locations and corresponding keys
+-h, --help      tp <option>                 display this manual
+EOF
+}
+
+check_locations() {
+    if [ ! -s ${saved_locations_path} ]; then
+        echo "Locations file is empty."
+        exit
     fi
 }
+
+add() {
+    IFS=: read line_number line <<< "$(grep -nw ${key} ${saved_locations_path})"
+    
+    # check if key already exists
+    if [ -z ${line_number} ]; then
+        echo "${entry}" >> ${saved_locations_path}
+    else
+
+        if [ ! -d "${dir}" ]; then
+            echo "Error! ${dir} is not a valid dir."
+            exit
+        fi
+
+        if [ "${dir}" == . ]; then
+            dir="$(pwd)"
+        else
+            dir="$(cd $dir; pwd)"
+        fi
+
+        
+        local entry="${key} -> ${dir}"
+
+        echo "Key: ${key} already exists."
+        echo "Current entry: ${line}"
+        read -p "Overwrite? [N/y] " -n 1 response
+        response=${response,,}
+        if [ "${response}" = 'y' ]; then
+            sed -i "${line_number}s|^.*$|${entry}|" ${saved_locations_path}
+        fi
+    fi
+}
+
+delete() {
+    check_locations
+    local line="$(grep -nw $key ${saved_locations_path})"
+    IFS=: read line_number line <<< "$(grep -nw ${key} ${saved_locations_path})"
+    
+    if [ -z ${line_number} ]; then
+        echo "No key entry found for deletion."
+    else
+        echo "Current entry: ${line}"
+        read -r -p "Confirm deletion? [N/y] " -n 1 response
+        response=${response,,}
+        if [ "${response}" = 'y' ]; then
+            sed -i "${line_number}d" ${saved_locations_path}
+        fi
+    fi
+}
+
+rename() {
+    check_locations
+    if [ -z ${line_number} ]; then
+        echo "No key entry found to rename."
+    else 
+        IFS=: read line_number line <<< "$(grep -nw ${old_key} ${saved_locations_path})"
+        sed -i "${line_number}s|${old_key}|${new_key}|" ${saved_locations_path}
+    fi
+}
+
+list() {
+    check_locations
+    echo "Teleporter locations:"
+    echo "---------------------------------------"
+    cat ${saved_locations_path}
+}
+
+tp() {
+    check_locations
+    IFS=: read line_number line <<< "$(grep -nw ${key} ${saved_locations_path})"
+    dir="$(cut -d ' ' -f 3 <<< ${line})"
+    
+    if [ ! -d "${dir}" ]; then
+        echo "Error! ${dir} is not a valid dir."
+        read -r -p "Would you like to delete it? [Y/n] " -n 1 response
+        response=${response,,}
+        if [ "${response}" = 'n' ]; then
+            exit
+        fi
+        sed -i "${line_number}d" ${saved_locations_path}
+
+    else
+        if [ -z ${line_number} ]; then
+            echo "Unknown argument"
+        else
+            cd ${dir}
+            pwd
+            #echo "tp: ${line}"
+        fi
+    fi
+}
+
+if [ $# -le 0 ]; then
+    echo 'No arguments passed, add "-h or --help" for arguments list.'
+    exit
+fi
+
+# read user input
+while [ $# -gt 0 ]
+do
+    args="$1"
+    case $args in
+        -a|--add)
+            key="$2"
+            dir="$3"
+            add
+            shift 3
+            ;;
+
+        -d|--delete)
+            key="$2"
+            delete
+            shift 2
+            ;;
+
+        -r|--rename)
+            old_key="$2"
+            new_key="$3"
+            rename
+            shift 3
+            ;;
+
+        -l|--list)
+            list
+            shift
+            ;;
+
+        -h|--help)
+            print_help
+            shift
+            ;;
+
+        *)
+            # check if the argument is a key
+            key="$1"
+            tp
+            shift
+            ;;
+    esac
+done
